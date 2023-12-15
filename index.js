@@ -2,31 +2,10 @@ import { format, parse } from "date-fns";
 import axios from "axios";
 import cheerio from "cheerio";
 
-const publicHolidays = [
-	{ name: "New Year's Day", date: "01-01-2024" },
-	{ name: "Armenian Orthodox Christmas Day", date: "01-06-2024" },
-	{ name: "St. Maroun's Day", date: "09-02-2024" },
-	{ name: "Rafik Hariri Memorial Day", date: "14-02-2024" },
-	{ name: "Feast of Annunciation", date: "25-03-2024" },
-	{ name: "Good Friday (Western Church)", date: "29-03-2024" },
-	{ name: "Easter Sunday (Western Church)", date: "31-03-2024" },
-	{ name: "Eid al-Fitr", date: "10-04-2024" },
-	{ name: "Eid al-Fitr", date: "11-04-2024" },
-	{ name: "Labour Day", date: "01-05-2024" },
-	{ name: "Good Friday (Eastern Church)", date: "03-05-2024" },
-	{ name: "Easter Sunday (Eastern Church)", date: "05-05-2024" },
-	{ name: "Resistance and Liberation Day", date: "25-05-2024" },
-	{ name: "Eid Al Adha", date: "17-06-2024" },
-	{ name: "Eid Al Adha", date: "18-06-2024" },
-	{ name: "Hijri New Year", date: "08-07-2024" },
-	{ name: "Ashoura", date: "16-07-2024" },
-	{ name: "Assumption Day", date: "15-08-2024" },
-	{ name: "Birthday of Prophet Muhammed", date: "15-09-2024" },
-	{ name: "Independence Day", date: "22-11-2024" },
-	{ name: "Christmas Day", date: "25-12-2024" },
-];
+const USER_AGENT =
+	"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36";
 
-function isHoliday(date) {
+async function isHoliday(date) {
 	// If the parameter is a string, attempt to parse it as a date
 	const parsedDate =
 		typeof date === "string" ? parse(date, "dd-MM-yyyy", new Date()) : date;
@@ -36,15 +15,66 @@ function isHoliday(date) {
 	}
 
 	const formattedDate = format(parsedDate, "dd-MM-yyyy");
-	return publicHolidays.some((holiday) => holiday.date === formattedDate);
+	try {
+		const publicHolidays = await getHolidays(parsedDate.getFullYear());
+		return publicHolidays.some((holiday) => holiday.date === formattedDate);
+	} catch (error) {
+		throw new Error(error.message);
+	}
 }
 
-function getHolidaysNumber() {
-	return publicHolidays.length;
+async function getHolidaysNumber(year) {
+	try {
+		return (await getHolidays(year)).length;
+	} catch (error) {
+		throw new Error(error.message);
+	}
 }
 
-function getHolidays() {
-	return publicHolidays;
+async function getHolidays(year) {
+	const publicHolidays = [];
+	try {
+		const url = "https://www.officeholidays.com/countries/lebanon/" + year;
+		const ROW_SELECTOR =
+			"#wrapper > div:nth-child(6) > div.twelve.columns > table.country-table > tbody > tr";
+
+		// Downloading the target web page
+		// by performing an HTTP GET request in Axios
+		const axiosResponse = await axios.request({
+			method: "GET",
+			url: url,
+			headers: {
+				"User-Agent": USER_AGENT,
+			},
+		});
+
+		// Parsing the HTML source of the target web page with Cheerio
+		const $ = cheerio.load(axiosResponse.data);
+
+		// Extracting the holiday name and date
+		$(ROW_SELECTOR).each((index, element) => {
+			const name = $(element).find("td:nth-child(3) > a").text();
+			var date = $(element).find("td:nth-child(2) > time").attr("datetime"); // different date format: yyyy-MM-dd
+
+			if (name && date) {
+				const formattedDate = format(
+					parse(date, "yyyy-MM-dd", new Date()),
+					"dd-MM-yyyy"
+				);
+
+				const holiday = { name: name, date: formattedDate };
+				publicHolidays.push(holiday);
+			}
+		});
+		return publicHolidays;
+	} catch (error) {
+		console.error(`Error fetching holidays: ${error.message}`);
+		if (error.response?.status === 404) {
+			throw new Error(`Data for year ${year} not available.`);
+		} else {
+			throw new Error("Unable to fetch holidays");
+		}
+	}
 }
 
 async function getMarketRate() {
@@ -59,8 +89,7 @@ async function getMarketRate() {
 			method: "GET",
 			url: url,
 			headers: {
-				"User-Agent":
-					"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36",
+				"User-Agent": USER_AGENT,
 			},
 		});
 

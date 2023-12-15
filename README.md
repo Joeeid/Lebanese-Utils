@@ -26,11 +26,12 @@ import * as lebaneseUtils from "lebanese-utils";
 ## Available Functions ✨
 
 ```javascript
-/*** Holiday Functions - currently only works with 2024 ***/
+/***** All functions are async *****/
+/*** Holiday Functions ***/
 
 isHoliday(date: "dd-MM-yyyy"): boolean
 //Check if a given date is a public holiday.
-//Ex: console.log(lebaneseUtils.isHoliday("01-01-2024"));
+//Ex: console.log(await lebaneseUtils.isHoliday("01-01-2024"));
 //output: true
 
 getHolidaysNumber(): number
@@ -39,8 +40,8 @@ getHolidaysNumber(): number
 getHolidays(): Array<Object>
 //Get a list of all public holidays.
 
+
 /*** USD/LBP Rate Conversion Functions ***/
-/***      All functions are async      ***/
 
 getMarketRate(): number
 //Get the latest Market USD/LBP Rate.
