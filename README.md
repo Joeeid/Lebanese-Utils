@@ -34,10 +34,10 @@ isHoliday(date: "dd-MM-yyyy"): boolean
 //Ex: console.log(await lebaneseUtils.isHoliday("01-01-2024"));
 //output: true
 
-getHolidaysNumber(): number
+getHolidaysNumber(year: number): number
 //Get the number of all public holidays.
 
-getHolidays(): Array<Object>
+getHolidays(year: number): Array<Object>
 //Get a list of all public holidays.
 
 
