@@ -26,7 +26,7 @@ import * as lebaneseUtils from "lebanese-utils";
 ## Available Functions ✨
 
 ```javascript
-/***** All functions are async *****/
+/***** Async Functions *****/
 /*** Holiday Functions ***/
 
 isHoliday(date: "dd-MM-yyyy"): boolean
@@ -51,6 +51,19 @@ convertToLBP(amount: number): number
 
 convertToUSD(amount: number): number
 //Convert an amount in LBP to USD.
+
+
+/***** Sync Functions *****/
+/*** Lebanese Numbers Functions ***/
+
+getAreaCode(number: "99999999"): string
+//Get the area code of lebanese numbers
+
+isAlfa(number: "99999999"): boolean
+//Check if a number is Alfa
+
+isTouch(number: "99999999"): boolean
+//Check if a number is Touch
 ```
 
 ## Contributing ❤️
